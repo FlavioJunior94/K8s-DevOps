@@ -1,0 +1,6 @@
+---
+- name: Instalar Kubernetes nos nós do cluster
+  hosts: k8s-cluster
+  become: yes
+  roles:
+    - kubernetes

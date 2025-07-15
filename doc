@@ -1,0 +1,25 @@
+💡 Ideia do Projeto
+Um sistema de deploy automatizado de microsserviços com Kubernetes em cluster, incluindo:
+
+CI/CD (GitHub Actions ou Jenkins)
+
+Monitoramento com Prometheus + Grafana
+
+Alertas com Alertmanager
+
+Ingress Controller com NGINX
+
+Dashboard Kubernetes (para visualização)
+
+Microsserviços com Docker (pode ser um app de catálogo e API simples em Node.js ou Python)
+
+---------------------------------------------------------------------------------------------------
+passo 1: subi as maquinas via vagrant 
+
+passo 2: instalar ansible e rodar o ansible-k8s : 
+    ansible-playbook -i /root/ansible-docker/inventory.ini /root/ansible-docker/playbook.yml
+    ansible-playbook -i /root/ansible-k8s/inventory.ini /root/ansible-k8s/playbook.yml
+
+passo 3: (colocar tudo no vagrantfile, para a  maquina ja subir fazendo isso)    
+    !! PENDENTE  arruma um comando q copia os arquivos da pasta do vagrant para o /root/ apenas do master
+

@@ -4,10 +4,10 @@
 - name: Instalar Kubernetes
   import_tasks: install_k8s.yml
 
-- name: Inicializar master
-  import_tasks: init_master.yml
-  when: inventory_hostname in groups['k8s-master']
+#- name: Inicializar master
+#  import_tasks: init_master.yml
+#  when: inventory_hostname in groups['k8s-master']
 
-- name: Adicionar workers
-  import_tasks: join_workers.yml
-  when: inventory_hostname in groups['k8s-workers']
+#- name: Adicionar workers
+#  import_tasks: join_workers.yml
+#  when: inventory_hostname in groups['k8s-workers']

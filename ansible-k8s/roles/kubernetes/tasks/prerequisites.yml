@@ -7,7 +7,7 @@
     regexp: '^\s*(\S+)\s+swap\s+\S+\s+\S+\s+\d+\s+\d+'
     replace: '# \1 swap swap defaults 0 0'
 
-- name: Carregar módulos do kernel necessários
+- name: Carregar modulos do kernel necessarios
   modprobe:
     name: "{{ item }}"
     state: present
@@ -15,14 +15,14 @@
     - overlay
     - br_netfilter
 
-- name: Garantir que os módulos sejam carregados na inicialização
+- name: Garantir que os modulos sejam carregados na inicializacao
   copy:
     dest: /etc/modules-load.d/k8s.conf
     content: |
       overlay
       br_netfilter
 
-- name: Aplicar configurações de rede recomendadas
+- name: Aplicar configuracoes de rede recomendadas
   copy:
     dest: /etc/sysctl.d/k8s.conf
     content: |

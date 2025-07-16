@@ -1,13 +1,20 @@
-- name: Adicionar chave GPG do Kubernetes
-  apt_key:
-    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-    state: present
+- name: Criar diret√≥rio de chaves APT confi√°veis
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
 
-- name: Adicionar repositÛrio do Kubernetes
+- name: Baixar chave GPG do Kubernetes em ASCII
+  ansible.builtin.get_url:
+    url: https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key
+    dest: /etc/apt/keyrings/kubernetes-apt-keyring.asc
+    mode: '0644'
+
+- name: Adicionar reposit√≥rio oficial do Kubernetes
   apt_repository:
-    repo: "deb http://apt.kubernetes.io/ kubernetes-xenial main"
-    state: present
+    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.asc] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /"
     filename: kubernetes
+    state: present
 
 - name: Atualizar cache APT
   apt:
@@ -23,10 +30,11 @@
     state: present
     force_apt_get: yes
 
-- name: Impedir atualizaÁ„o autom·tica dos pacotes Kubernetes
-  apt:
-    name:
-      - kubelet
-      - kubeadm
-      - kubectl
-    state: hold
+- name: Marcar pacotes do Kubernetes como "hold"
+  ansible.builtin.dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop:
+    - kubelet
+    - kubeadm
+    - kubectl

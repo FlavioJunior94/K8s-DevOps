@@ -1,43 +1,13 @@
----
-- name: Instalar dependências
-  apt:
-    name:
-      - apt-transport-https
-      - ca-certificates
-      - curl
-      - gnupg
-      - lsb-release
-    update_cache: true
-    state: present
+- name: Preparar o sistema
+  import_tasks: prerequisites.yml
 
-- name: Adicionar chave GPG do Kubernetes
-  ansible.builtin.shell: |
-    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/k8s.gpg
-  args:
-    creates: /etc/apt/keyrings/k8s.gpg
+- name: Instalar Kubernetes
+  import_tasks: install_k8s.yml
 
-- name: Adicionar repositório do Kubernetes
-  ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/etc/apt/keyrings/k8s.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /"
-    filename: kubernetes
+- name: Inicializar master
+  import_tasks: init_master.yml
+  when: inventory_hostname in groups['k8s-master']
 
-- name: Atualizar cache do APT
-  apt:
-    update_cache: yes
-
-- name: Instalar kubelet, kubeadm, kubectl
-  apt:
-    name:
-      - kubelet
-      - kubeadm
-      - kubectl
-    state: present
-
-- name: Marcar pacotes do Kubernetes como "hold"
-  dpkg_selections:
-    name: "{{ item }}"
-    selection: hold
-  loop:
-    - kubelet
-    - kubeadm
-    - kubectl
+- name: Adicionar workers
+  import_tasks: join_workers.yml
+  when: inventory_hostname in groups['k8s-workers']

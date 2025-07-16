@@ -1,0 +1,32 @@
+- name: Adicionar chave GPG do Kubernetes
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Adicionar repositório do Kubernetes
+  apt_repository:
+    repo: "deb http://apt.kubernetes.io/ kubernetes-xenial main"
+    state: present
+    filename: kubernetes
+
+- name: Atualizar cache APT
+  apt:
+    update_cache: yes
+    force_apt_get: yes
+
+- name: Instalar kubelet, kubeadm e kubectl
+  apt:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: present
+    force_apt_get: yes
+
+- name: Impedir atualização automática dos pacotes Kubernetes
+  apt:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: hold

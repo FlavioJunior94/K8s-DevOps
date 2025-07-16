@@ -1,0 +1,34 @@
+- name: Desativar swap temporariamente
+  command: swapoff -a
+
+- name: Remover entrada de swap permanente
+  replace:
+    path: /etc/fstab
+    regexp: '^\s*(\S+)\s+swap\s+\S+\s+\S+\s+\d+\s+\d+'
+    replace: '# \1 swap swap defaults 0 0'
+
+- name: Carregar módulos do kernel necessários
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - overlay
+    - br_netfilter
+
+- name: Garantir que os módulos sejam carregados na inicialização
+  copy:
+    dest: /etc/modules-load.d/k8s.conf
+    content: |
+      overlay
+      br_netfilter
+
+- name: Aplicar configurações de rede recomendadas
+  copy:
+    dest: /etc/sysctl.d/k8s.conf
+    content: |
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.bridge.bridge-nf-call-iptables = 1
+      net.ipv4.ip_forward = 1
+
+- name: Aplicar sysctl
+  command: sysctl --system

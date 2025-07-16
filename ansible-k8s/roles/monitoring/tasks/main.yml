@@ -1,0 +1,41 @@
+- name: Criar namespace 'monitoring'
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: monitoring
+    state: present
+  delegate_to: localhost
+  run_once: true
+
+- name: Adicionar repositório do Prometheus Community
+  command: helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+  args:
+    creates: /root/.cache/helm/repository/prometheus-community-index.yaml
+
+- name: Atualizar repositórios do Helm
+  command: helm repo update
+
+- name: Copiar values.yaml para o master
+  template:
+    src: values.yaml.j2
+    dest: /root/values.yaml
+
+- name: Instalar kube-prometheus-stack com Helm
+  command: >
+    helm install monitoring prometheus-community/kube-prometheus-stack
+    --namespace monitoring
+    --create-namespace
+    --version 58.2.0
+    -f /root/values.yaml
+  args:
+    creates: /root/.kube-prometheus-installed
+  register: helm_install_output
+
+- name: Marcar instalação como concluída
+  file:
+    path: /root/.kube-prometheus-installed
+    state: touch
+
+- name: Exibir saída do Helm
+  debug:
+    var: helm_install_output.stdout

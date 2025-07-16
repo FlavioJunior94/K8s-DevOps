@@ -12,7 +12,12 @@
 #  import_tasks: join_workers.yml
 #  when: inventory_hostname in groups['k8s-workers']
 
-- name: Instalar Helm no master
+#- name: Instalar Helm no master
+#  import_role:
+#    name: helm
+#  when: inventory_hostname in groups['k8s-master']
+
+- name: Instalar Prometheus e Grafana
   import_role:
-    name: helm
+    name: monitoring
   when: inventory_hostname in groups['k8s-master']

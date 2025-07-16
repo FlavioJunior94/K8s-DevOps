@@ -1,0 +1,4 @@
+- name: Instalar a collection kubernetes.core do Ansible Galaxy
+  ansible.builtin.command: ansible-galaxy collection install kubernetes.core
+  args:
+    creates: /root/.ansible/collections/ansible_collections/kubernetes/core

@@ -1,6 +1,24 @@
 ---
-- name: Instalar Kubernetes nos nós do cluster
-  hosts: k8s-cluster
+#- name: Instalar dependências do Ansible
+#  hosts: k8s-master
+#  become: yes
+#  roles:
+#    - ansible-deps
+
+#- name: Instalar Kubernetes nos nós do cluster
+#  hosts: k8s-cluster
+#  become: yes
+#  roles:
+#    - kubernetes
+
+#- name: Instalar Helm no master
+#  hosts: k8s-master
+#  become: yes
+#  roles:
+#    - helm
+
+- name: Instalar Prometheus e Grafana no master
+  hosts: k8s-master
   become: yes
   roles:
-    - kubernetes
+    - monitoring

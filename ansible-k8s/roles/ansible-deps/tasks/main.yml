@@ -1,0 +1,5 @@
+- name: Instalar dependências do Ansible para Kubernetes
+  import_tasks: install_collection.yml
+
+- name: Instalar bibliotecas Python para Kubernetes
+  import_tasks: install_python.yml

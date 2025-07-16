@@ -1,0 +1,6 @@
+- name: Instalar bibliotecas Python necessárias para o módulo k8s
+  ansible.builtin.pip:
+    name:
+      - openshift
+      - kubernetes
+    extra_args: --break-system-packages

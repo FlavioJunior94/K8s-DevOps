@@ -1,0 +1,55 @@
+- name: Instalar dependências do containerd
+  apt:
+    name:
+      - curl
+      - gnupg
+      - ca-certificates
+    state: present
+
+- name: Adicionar repositório oficial do Docker (para containerd)
+  apt_repository:
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    filename: docker
+    state: present
+
+- name: Adicionar chave GPG do Docker
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker.gpg
+    mode: '0644'
+
+- name: Atualizar cache APT
+  apt:
+    update_cache: yes
+    force_apt_get: yes
+
+- name: Instalar containerd
+  apt:
+    name: containerd.io
+    state: present
+
+- name: Criar diretório de config do containerd
+  file:
+    path: /etc/containerd
+    state: directory
+
+- name: Gerar arquivo de configuração padrão do containerd
+  command: containerd config default
+  register: containerd_config
+
+- name: Salvar configuração gerada do containerd
+  copy:
+    dest: /etc/containerd/config.toml
+    content: "{{ containerd_config.stdout }}"
+
+- name: Ativar SystemdCgroup no containerd (recomendado pelo kubeadm)
+  replace:
+    path: /etc/containerd/config.toml
+    regexp: 'SystemdCgroup = false'
+    replace: 'SystemdCgroup = true'
+
+- name: Reiniciar e habilitar containerd
+  systemd:
+    name: containerd
+    enabled: yes
+    state: restarted

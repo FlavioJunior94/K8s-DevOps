@@ -1,0 +1,41 @@
+- name: Copiar kubeadm config.yaml para o master
+  template:
+    src: kubeadm-config.yaml.j2
+    dest: /root/kubeadm-config.yaml
+
+- name: Inicializar cluster Kubernetes com kubeadm
+  command: kubeadm init --config=/root/kubeadm-config.yaml --upload-certs
+  register: kubeadm_init_output
+  ignore_errors: false
+  changed_when: "'kubeadm join' in kubeadm_init_output.stdout"
+
+- name: Criar diretório do kube para o root
+  file:
+    path: /root/.kube
+    state: directory
+    mode: 0700
+
+- name: Copiar config do cluster para o root
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /root/.kube/config
+    remote_src: yes
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Instalar Calico como CNI
+  shell: |
+    kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/calico.yaml
+  environment:
+    KUBECONFIG: /root/.kube/config
+
+- name: Exibir token de join para os workers
+  shell: kubeadm token create --print-join-command
+  register: join_command
+
+- name: Salvar comando de join
+  copy:
+    content: "{{ join_command.stdout }}"
+    dest: /root/join-command.sh
+    mode: '0700'

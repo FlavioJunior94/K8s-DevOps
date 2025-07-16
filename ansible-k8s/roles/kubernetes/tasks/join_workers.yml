@@ -1,0 +1,7 @@
+- name: Obter comando de join do master
+  delegate_to: "{{ groups['k8s-master'][0] }}"
+  command: cat /root/join-command.sh
+  register: join_cmd
+
+- name: Executar kubeadm join nos workers
+  command: "{{ join_cmd.stdout }}"

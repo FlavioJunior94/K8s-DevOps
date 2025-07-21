@@ -1,0 +1,57 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Cluster Monitoring Avançado",
+    "panels": [
+      {
+        "type": "graph",
+        "title": "Uso de CPU (%)",
+        "gridPos": { "w": 12, "h": 6, "x": 0, "y": 0 },
+        "targets": [{ "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)", "refId": "A" }]
+      },
+      {
+        "type": "gauge",
+        "title": "CPU Instantâneo (%)",
+        "gridPos": { "w": 6, "h": 4, "x": 12, "y": 0 },
+        "targets": [{ "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[1m])) * 100)", "refId": "A" }],
+        "options": { "showUnfilled": false, "min": 0, "max": 100 }
+      },
+      {
+        "type": "piechart",
+        "title": "Espaço Livre em Disco (%)",
+        "gridPos": { "w": 12, "h": 6, "x": 0, "y": 6 },
+        "targets": [{ "expr": "(node_filesystem_avail_bytes{mountpoint=\"/\"}/node_filesystem_size_bytes{mountpoint=\"/\"}) * 100", "refId": "A" }],
+        "options": { "showLegend": true }
+      },
+      {
+        "type": "graph",
+        "title": "CPU por Node",
+        "gridPos": { "w": 12, "h": 6, "x": 0, "y": 12 },
+        "targets": [{ "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)", "legendFormat": "{{instance}}", "refId": "A" }]
+      },
+      {
+        "type": "graph",
+        "title": "Status dos Nodes (Up/Down)",
+        "gridPos": { "w": 12, "h": 4, "x": 0, "y": 18 },
+        "targets": [{ "expr": "up{job=\"node-exporter\"}", "refId": "A" }],
+        "alert": {
+          "conditions": [{
+            "evaluator": { "type": "lt", "params": [1] },
+            "operator": { "type": "and" },
+            "query": { "params": ["A"] },
+            "reducer": { "type": "min" },
+            "type": "query"
+          }],
+          "for": "2m",
+          "frequency": "1m",
+          "handler": 1,
+          "name": "Node Down",
+          "noDataState": "alerting",
+          "notifications": []
+        }
+      }
+    ],
+    "schemaVersion": 36,
+    "version": 1
+  }
+}

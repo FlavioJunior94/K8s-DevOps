@@ -17,8 +17,17 @@
 #  roles:
 #    - helm
 
-- name: Instalar Prometheus e Grafana no master
-  hosts: k8s-master
-  become: yes
-  roles:
-    - monitoring
+#- name: Instalar Prometheus e Grafana no master
+#  hosts: k8s-master
+#  become: yes
+#  roles:
+#    - monitoring
+
+- name: Habilitar containerd e kubelet na inicialização
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  loop:
+    - containerd
+    - kubelet

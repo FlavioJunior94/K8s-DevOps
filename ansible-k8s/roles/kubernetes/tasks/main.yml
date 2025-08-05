@@ -11,3 +11,19 @@
 - name: Adicionar workers
   import_tasks: join_workers.yml
   when: inventory_hostname in groups['k8s-workers']
+
+# Desativar swap e garantir kubelet ativo
+- name: Desativar swap imediatamente
+  command: swapoff -a
+
+- name: Remover swap do fstab
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*swap.*)$'
+    replace: '# \1'
+
+- name: Reiniciar kubelet após desativar swap
+  systemd:
+    name: kubelet
+    state: restarted
+    enabled: yes

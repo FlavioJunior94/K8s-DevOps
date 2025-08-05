@@ -1,0 +1,37 @@
+---
+- name: Garantir que containerd e kubelet iniciem com o sistema
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  loop:
+    - containerd
+    - kubelet
+
+- name: Copiar script de auto-recuperação do kubelet
+  ansible.builtin.copy:
+    src: kubelet-auto-recover.sh
+    dest: /usr/local/bin/kubelet-auto-recover.sh
+    mode: '0755'
+
+- name: Criar serviço systemd para auto-recuperação do kubelet
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/kubelet-auto-recover.service
+    content: |
+      [Unit]
+      Description=Auto recover kubelet if node is NotReady
+      After=network.target
+
+      [Service]
+      ExecStart=/usr/local/bin/kubelet-auto-recover.sh
+      Restart=always
+      RestartSec=30
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Habilitar e iniciar serviço de auto-recuperação
+  ansible.builtin.systemd:
+    name: kubelet-auto-recover
+    enabled: yes
+    state: started

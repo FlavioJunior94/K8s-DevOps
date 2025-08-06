@@ -4,6 +4,10 @@
   register: node_hostname
   changed_when: false
 
+- name: Debug hostname
+  debug:
+    msg: "Hostname do worker detectado: {{ node_hostname.stdout }}"
+
 - name: Verificar se o node já está no cluster
   ansible.builtin.shell: |
     kubectl get nodes --no-headers | awk '{print $1}' | grep -w "{{ node_hostname.stdout }}"
@@ -12,13 +16,9 @@
   failed_when: false
   delegate_to: 192.168.0.170
 
-- name: Verificar se o node já está pronto
-  ansible.builtin.shell: |
-    kubectl get nodes --no-headers | grep -w "{{ node_hostname.stdout }}" | grep -w Ready
-  register: node_ready
-  changed_when: false
-  failed_when: false
-  delegate_to: 192.168.0.170
+- name: Debug resultado cluster
+  debug:
+    msg: "Resultado da checagem: stdout={{ node_in_cluster.stdout }}, rc={{ node_in_cluster.rc }}"
 
 - name: Criar token de join se node não estiver no cluster
   ansible.builtin.command: kubeadm token create --print-join-command

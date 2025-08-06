@@ -32,15 +32,21 @@ while true; do
         # Verifica status novamente
         STATUS=$(kubectl get nodes --no-headers | grep -w "$NODE_NAME" | awk '{print $2}')
         if [[ "$STATUS" != "Ready" && "$STATUS" != "Ready,SchedulingDisabled" ]]; then
-            echo "[$DATE] Reinício do kubelet não resolveu. Resetando e tentando rejoin..." >> "$LOG_FILE"
-
-            kubeadm reset -f
-            systemctl restart kubelet
-
-            # Executa playbook de rejoin
-            ansible-playbook -i /root/K8s-DevOps/ansible-k8s/inventory.ini \
-                /root/K8s-DevOps/ansible-k8s/playbook.yml \
-                --tags auto-rejoin-worker >> "$LOG_FILE" 2>&1
+            # Verifica se é master ou worker
+            if kubectl get nodes --no-headers | grep -w "$NODE_NAME" | grep -q "control-plane"; then
+                echo "[$DATE] Master node detectado. Apenas reiniciando serviços..." >> "$LOG_FILE"
+                systemctl restart containerd
+                systemctl restart kubelet
+            else
+                echo "[$DATE] Worker node detectado. Resetando e tentando rejoin..." >> "$LOG_FILE"
+                kubeadm reset -f
+                systemctl restart kubelet
+                
+                # Executa playbook de rejoin
+                ansible-playbook -i /root/K8s-DevOps/ansible-k8s/inventory.ini \
+                    /root/K8s-DevOps/ansible-k8s/playbook.yml \
+                    --tags auto-rejoin-worker >> "$LOG_FILE" 2>&1
+            fi
         fi
     else
         echo "[$DATE] Node $NODE_NAME está saudável (Status: $STATUS)" >> "$LOG_FILE"

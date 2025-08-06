@@ -40,10 +40,10 @@
     state: started
 
 # -------------------------
-# BLOCO DE RESET E REJOIN
+# BLOCO DE RESET E REJOIN (APENAS WORKERS)
 # -------------------------
 
-- name: Parar kubelet e containerd
+- name: Parar kubelet e containerd (apenas workers)
   ansible.builtin.systemd:
     name: "{{ item }}"
     state: stopped
@@ -51,26 +51,29 @@
     - kubelet
     - containerd
   ignore_errors: yes
+  when: inventory_hostname not in groups['k8s-master']
 
-- name: Resetar node para limpar cluster antigo
+- name: Resetar node para limpar cluster antigo (apenas workers)
   ansible.builtin.command: kubeadm reset -f
   ignore_errors: yes
+  when: inventory_hostname not in groups['k8s-master']
 
-- name: Limpar diretórios residuais do Kubernetes
+- name: Limpar diretórios residuais do Kubernetes (apenas workers)
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent
   loop:
     - /etc/kubernetes
     - /var/lib/kubelet
-    - /var/lib/etcd
   ignore_errors: yes
+  when: inventory_hostname not in groups['k8s-master']
 
-- name: Subir containerd novamente
+- name: Subir containerd novamente (apenas workers)
   ansible.builtin.systemd:
     name: containerd
     state: started
     enabled: yes
+  when: inventory_hostname not in groups['k8s-master']
 
 - name: Criar token de join no master
   delegate_to: "{{ groups['k8s-master'][0] }}"
@@ -78,8 +81,10 @@
   register: join_cmd
   changed_when: false
   command: kubeadm token create --print-join-command
+  when: inventory_hostname not in groups['k8s-master']
 
 - name: Executar kubeadm join no worker
   ansible.builtin.shell: "{{ join_cmd.stdout }} --ignore-preflight-errors=Swap"
   register: join_result
   changed_when: true
+  when: inventory_hostname not in groups['k8s-master']

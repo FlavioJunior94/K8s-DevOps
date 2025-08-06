@@ -12,28 +12,21 @@
   failed_when: false
   delegate_to: 192.168.0.170
 
-- name: Verificar se o kubelet está pronto no node
+- name: Verificar se o node já está pronto
   ansible.builtin.shell: |
-    test -f /etc/kubernetes/kubelet.conf && echo "ready" || echo "notready"
-  register: kubelet_ready
+    kubectl get nodes --no-headers | grep -w "{{ node_hostname.stdout }}" | grep -w Ready
+  register: node_ready
   changed_when: false
-
-- name: Criar token de join se o node não estiver no cluster
-  ansible.builtin.shell: |
-    kubeadm token create --print-join-command
-  register: kubeadm_join_cmd
-  changed_when: true
+  failed_when: false
   delegate_to: 192.168.0.170
-  when: node_in_cluster.rc != 0
 
-- name: Executar kubeadm join no worker se necessário
-  ansible.builtin.shell: |
-    {{ kubeadm_join_cmd.stdout }} --ignore-preflight-errors=Swap
-  when: 
-    - node_in_cluster.rc != 0
-    - kubelet_ready.stdout == "notready"
-  register: join_result
+- name: Criar token de join se node não estiver no cluster
+  ansible.builtin.command: kubeadm token create --print-join-command
+  register: join_cmd
   changed_when: true
-  retries: 3
-  delay: 10
-  until: join_result.rc == 0
+  when: node_in_cluster.rc != 0
+  delegate_to: 192.168.0.170
+
+- name: Executar kubeadm join no worker
+  ansible.builtin.shell: "{{ join_cmd.stdout }} --ignore-preflight-errors=Swap"
+  when: node_in_cluster.rc != 0

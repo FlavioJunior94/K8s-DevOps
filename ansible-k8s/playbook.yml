@@ -17,11 +17,12 @@
 #  roles:
 #    - helm
 
-#- name: Instalar Prometheus e Grafana no master
-#  hosts: k8s-master
-#  become: yes
-#  roles:
-#    - monitoring
+- name: Instalar Prometheus e Grafana no master
+  hosts: k8s-master
+  become: yes
+  tags: monitoring
+  roles:
+    - monitoring
 
 - name: Habilitar auto-recuperação dos nodes
   hosts: k8s-cluster

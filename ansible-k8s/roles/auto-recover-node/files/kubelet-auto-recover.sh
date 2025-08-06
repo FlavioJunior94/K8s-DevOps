@@ -34,7 +34,16 @@ while true; do
         if [[ "$STATUS" != "Ready" && "$STATUS" != "Ready,SchedulingDisabled" ]]; then
             # Verifica se é master ou worker
             if kubectl get nodes --no-headers | grep -w "$NODE_NAME" | grep -q "control-plane"; then
-                echo "[$DATE] Master node detectado. Apenas reiniciando serviços..." >> "$LOG_FILE"
+                echo "[$DATE] Master node detectado. Verificando CNI..." >> "$LOG_FILE"
+                
+                # Verifica se CNI está instalado
+                if ! kubectl get pods -n kube-system | grep -q flannel; then
+                    echo "[$DATE] CNI não encontrado. Instalando Flannel..." >> "$LOG_FILE"
+                    kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml >> "$LOG_FILE" 2>&1
+                    sleep 30
+                fi
+                
+                echo "[$DATE] Reiniciando serviços do master..." >> "$LOG_FILE"
                 systemctl restart containerd
                 systemctl restart kubelet
             else

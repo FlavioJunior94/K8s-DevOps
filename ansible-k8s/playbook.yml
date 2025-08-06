@@ -23,11 +23,11 @@
 #  roles:
 #    - monitoring
 
-#- name: Habilitar auto-recuperação dos nodes
-#  hosts: k8s-cluster
-#  become: yes
-#  roles:
-#    - auto-recover-node
+- name: Habilitar auto-recuperação dos nodes
+  hosts: k8s-cluster
+  become: yes
+  roles:
+    - auto-recover-node
 
 - name: Auto rejoin de workers no cluster
   hosts: k8s-workers

@@ -23,9 +23,12 @@
       After=network.target
 
       [Service]
+      Type=simple
       ExecStart=/usr/local/bin/kubelet-auto-recover.sh
       Restart=always
-      RestartSec=30
+      RestartSec=15
+      StandardOutput=append:/var/log/kubelet-auto-recover.log
+      StandardError=append:/var/log/kubelet-auto-recover.log
 
       [Install]
       WantedBy=multi-user.target
@@ -35,3 +38,48 @@
     name: kubelet-auto-recover
     enabled: yes
     state: started
+
+# -------------------------
+# BLOCO DE RESET E REJOIN
+# -------------------------
+
+- name: Parar kubelet e containerd
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+  loop:
+    - kubelet
+    - containerd
+  ignore_errors: yes
+
+- name: Resetar node para limpar cluster antigo
+  ansible.builtin.command: kubeadm reset -f
+  ignore_errors: yes
+
+- name: Limpar diretórios residuais do Kubernetes
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/kubernetes
+    - /var/lib/kubelet
+    - /var/lib/etcd
+  ignore_errors: yes
+
+- name: Subir containerd novamente
+  ansible.builtin.systemd:
+    name: containerd
+    state: started
+    enabled: yes
+
+- name: Criar token de join no master
+  delegate_to: "{{ groups['k8s-master'][0] }}"
+  run_once: true
+  register: join_cmd
+  changed_when: false
+  command: kubeadm token create --print-join-command
+
+- name: Executar kubeadm join no worker
+  ansible.builtin.shell: "{{ join_cmd.stdout }} --ignore-preflight-errors=Swap"
+  register: join_result
+  changed_when: true

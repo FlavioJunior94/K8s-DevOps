@@ -1,11 +1,16 @@
 ---
+- name: Obter hostname do node
+  ansible.builtin.command: hostname
+  register: node_hostname
+  changed_when: false
+
 - name: Verificar se o node já está no cluster
   ansible.builtin.shell: |
-    kubectl get nodes --no-headers | grep -w "{{ inventory_hostname }}"
+    kubectl get nodes --no-headers | awk '{print $1}' | grep -w "{{ node_hostname.stdout }}"
   register: node_in_cluster
   changed_when: false
   failed_when: false
-  delegate_to: 192.168.0.170  # IP do master
+  delegate_to: 192.168.0.170
 
 - name: Verificar se o kubelet está pronto no node
   ansible.builtin.shell: |

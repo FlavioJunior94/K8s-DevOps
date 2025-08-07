@@ -1,0 +1,12 @@
+---
+- name: Limpar completamente cluster Kubernetes
+  hosts: k8s-cluster
+  become: yes
+  roles:
+    - clean-k8s
+
+- name: Limpar Docker de todos os nodes
+  hosts: k8s-cluster
+  become: yes
+  roles:
+    - clean-docker

@@ -3,11 +3,17 @@
     src: kubeadm-config.yaml.j2
     dest: /root/kubeadm-config.yaml
 
+- name: Verificar se cluster já existe
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: cluster_exists
+
 - name: Inicializar cluster Kubernetes com kubeadm
   command: kubeadm init --config=/root/kubeadm-config.yaml --upload-certs
   register: kubeadm_init_output
   ignore_errors: false
   changed_when: "'kubeadm join' in kubeadm_init_output.stdout"
+  when: not cluster_exists.stat.exists
 
 - name: Criar diretório do kube para o root
   file:
@@ -29,6 +35,7 @@
     kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/calico.yaml
   environment:
     KUBECONFIG: /root/.kube/config
+  when: not cluster_exists.stat.exists
 
 - name: Exibir token de join para os workers
   shell: kubeadm token create --print-join-command

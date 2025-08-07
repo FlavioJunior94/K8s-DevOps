@@ -1,0 +1,124 @@
+---
+- name: Parar serviços Kubernetes
+  systemd:
+    name: "{{ item }}"
+    state: stopped
+    enabled: no
+  loop:
+    - kubelet
+    - containerd
+  ignore_errors: yes
+
+- name: Parar serviço de auto-recovery
+  systemd:
+    name: kubelet-auto-recover
+    state: stopped
+    enabled: no
+  ignore_errors: yes
+
+- name: Remover serviço de auto-recovery
+  file:
+    path: /etc/systemd/system/kubelet-auto-recover.service
+    state: absent
+  ignore_errors: yes
+
+- name: Remover script de auto-recovery
+  file:
+    path: /usr/local/bin/kubelet-auto-recover.sh
+    state: absent
+  ignore_errors: yes
+
+- name: Reset completo do kubeadm
+  command: kubeadm reset -f
+  ignore_errors: yes
+
+- name: Remover diretórios do Kubernetes
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/kubernetes
+    - /var/lib/kubelet
+    - /var/lib/etcd
+    - /etc/cni/net.d
+    - /opt/cni/bin
+    - /var/lib/cni
+    - /run/flannel
+    - /etc/systemd/system/kubelet.service.d
+  ignore_errors: yes
+
+- name: Remover configuração do containerd
+  file:
+    path: /etc/containerd/config.toml
+    state: absent
+  ignore_errors: yes
+
+- name: Remover arquivos de controle do Ansible
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /root/.kube-prometheus-installed
+    - /root/join-command.sh
+    - /root/kubeadm-config.yaml
+    - /root/values.yaml
+  ignore_errors: yes
+
+- name: Remover kubeconfig
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /root/.kube
+    - /home/vagrant/.kube
+  ignore_errors: yes
+
+- name: Desinstalar pacotes Kubernetes
+  apt:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+      - containerd.io
+    state: absent
+    purge: yes
+  ignore_errors: yes
+
+- name: Remover repositório Kubernetes
+  file:
+    path: /etc/apt/sources.list.d/kubernetes.list
+    state: absent
+  ignore_errors: yes
+
+- name: Remover chaves GPG
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    - /etc/apt/keyrings/docker.gpg
+  ignore_errors: yes
+
+- name: Limpar iptables
+  shell: |
+    iptables -F
+    iptables -t nat -F
+    iptables -t mangle -F
+    iptables -X
+  ignore_errors: yes
+
+- name: Remover interfaces de rede virtuais
+  shell: |
+    ip link delete cni0 2>/dev/null || true
+    ip link delete flannel.1 2>/dev/null || true
+    ip link delete weave 2>/dev/null || true
+  ignore_errors: yes
+
+- name: Recarregar systemd
+  systemd:
+    daemon_reload: yes
+
+- name: Atualizar cache APT
+  apt:
+    update_cache: yes
+  ignore_errors: yes

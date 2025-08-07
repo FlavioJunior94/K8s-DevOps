@@ -1,0 +1,67 @@
+---
+- name: Parar serviços Docker
+  systemd:
+    name: "{{ item }}"
+    state: stopped
+    enabled: no
+  loop:
+    - docker
+    - docker.socket
+  ignore_errors: yes
+
+- name: Remover todos os containers Docker
+  shell: docker rm -f $(docker ps -aq) 2>/dev/null || true
+  ignore_errors: yes
+
+- name: Remover todas as imagens Docker
+  shell: docker rmi -f $(docker images -aq) 2>/dev/null || true
+  ignore_errors: yes
+
+- name: Remover todos os volumes Docker
+  shell: docker volume rm $(docker volume ls -q) 2>/dev/null || true
+  ignore_errors: yes
+
+- name: Remover todas as redes Docker
+  shell: docker network rm $(docker network ls -q) 2>/dev/null || true
+  ignore_errors: yes
+
+- name: Desinstalar Docker
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: absent
+    purge: yes
+  ignore_errors: yes
+
+- name: Remover diretórios Docker
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /var/lib/docker
+    - /var/lib/containerd
+    - /etc/docker
+    - /root/.docker
+  ignore_errors: yes
+
+- name: Remover repositório Docker
+  file:
+    path: /etc/apt/sources.list.d/docker.list
+    state: absent
+  ignore_errors: yes
+
+- name: Remover usuário vagrant do grupo docker
+  user:
+    name: vagrant
+    groups: docker
+    state: absent
+  ignore_errors: yes
+
+- name: Atualizar cache APT
+  apt:
+    update_cache: yes
+  ignore_errors: yes

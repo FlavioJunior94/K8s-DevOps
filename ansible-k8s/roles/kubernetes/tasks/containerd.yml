@@ -1,3 +1,10 @@
+- name: Parar e desabilitar Docker (conflita com containerd)
+  systemd:
+    name: docker
+    state: stopped
+    enabled: no
+  ignore_errors: yes
+
 - name: Instalar dependências do containerd
   apt:
     name:

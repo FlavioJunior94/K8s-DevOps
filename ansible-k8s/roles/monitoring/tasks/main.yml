@@ -15,13 +15,9 @@
   when: inventory_hostname in groups['k8s-master']
 
 - name: Criar namespace 'monitoring'
-  kubernetes.core.k8s:
-    api_version: v1
-    kind: Namespace
-    name: monitoring
-    state: present
-  delegate_to: localhost
+  command: kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
   run_once: true
+  ignore_errors: yes
 
 - name: Adicionar repositório do Prometheus Community
   command: helm repo add prometheus-community https://prometheus-community.github.io/helm-charts

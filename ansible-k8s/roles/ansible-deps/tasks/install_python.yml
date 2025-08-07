@@ -10,4 +10,3 @@
     name:
       - openshift
       - kubernetes
-    extra_args: --break-system-packages

@@ -1,15 +1,15 @@
 ---
-#- name: Instalar dependências do Ansible
-#  hosts: k8s-master
-#  become: yes
-#  roles:
-#    - ansible-deps
+- name: Instalar dependências do Ansible
+  hosts: k8s-master
+  become: yes
+  roles:
+    - ansible-deps
 
-#- name: Instalar Kubernetes nos nós do cluster
-#  hosts: k8s-cluster
-#  become: yes
-#  roles:
-#    - kubernetes
+- name: Instalar Kubernetes nos nós do cluster
+  hosts: k8s-cluster
+  become: yes
+  roles:
+    - kubernetes
 
 - name: Instalar Helm no master
   hosts: k8s-master
@@ -25,16 +25,16 @@
   roles:
     - monitoring
 
-- name: Habilitar auto-recuperação dos nodes
-  hosts: k8s-cluster
-  become: yes
-  tags: auto-recover
-  roles:
-    - auto-recover-node
+#- name: Habilitar auto-recuperação dos nodes
+#  hosts: k8s-cluster
+#  become: yes
+#  tags: auto-recover
+#  roles:
+#    - auto-recover-node
 
-- name: Auto rejoin de workers no cluster
-  hosts: k8s-workers
-  become: yes
-  tags: auto-rejoin-worker
-  roles:
-    - auto-rejoin-worker
+#- name: Auto rejoin de workers no cluster
+#  hosts: k8s-workers
+#  become: yes
+#  tags: auto-rejoin-worker
+#  roles:
+#    - auto-rejoin-worker

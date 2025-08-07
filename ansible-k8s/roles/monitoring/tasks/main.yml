@@ -15,7 +15,7 @@
   when: inventory_hostname in groups['k8s-master']
 
 - name: Criar namespace 'monitoring'
-  command: kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
+  shell: kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
   run_once: true
   ignore_errors: yes
 

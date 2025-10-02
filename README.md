@@ -18,7 +18,7 @@ Atualmente o projeto instala e configura:
 
 ---
 
-![nodes Kubernetes](IMG/nodes_kubernetes.jpg)
+![DashBoard](IMG/DASHBOARD.jpg)
 
 ## 📂 Estrutura do Projeto
 
@@ -100,6 +100,8 @@ master    Ready    control-plane   5m    v1.30.14
 worker1   Ready    <none>          3m    v1.30.14
 worker2   Ready    <none>          3m    v1.30.14
 ```
+![nodes Kubernetes](IMG/nodes_kubernetes.jpg)
+![Monitoring](IMG/monitoring-running.jpg)
 
 5. **Verifique os pods do sistema:**
 ```bash
